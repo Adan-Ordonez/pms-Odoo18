@@ -1899,27 +1899,39 @@ class AccountMove(models.Model):
             if move.move_type == "in_invoice":
                 all_bills = move.line_ids
                 if all_bills:
-                    address_final = []
                     price_exceeded = []
-                    
-                    for analytic_id in all_bills:
-                        price_check = analytic_id.product_id.max_price
-                        if analytic_id.price_subtotal > price_check:
-                            price_exceeded.append(f'{analytic_id.product_id.name} - ${price_check}')
-                        
-                        analytic_i = analytic_id.analytic_distribution
-                        if analytic_i:
-                            for key in analytic_i.keys():
-                                address = move.env["account.analytic.account"].sudo().search([("id", "=", key)]).id
-                                address_final.append(address)
+                    # Collect exact (product_id, analytic_account_id) pairs per line
+                    current_bill_pairs = set()
 
-                    dup = move.env["account.analytic.line"].search([
-                        "&",
-                        ("product_id", "in", all_bills.mapped("product_id.id")),
-                        "&",
-                        ("account_id", "in", address_final),
-                        ("category", "=", "vendor_bill")  
-                    ])
+                    for bill_line in all_bills:
+                        if bill_line.product_id:
+                            price_check = bill_line.product_id.max_price
+                            if price_check and bill_line.price_subtotal > price_check:
+                                price_exceeded.append(f'{bill_line.product_id.name} - ${price_check}')
+
+                        analytic_i = bill_line.analytic_distribution
+                        if analytic_i and bill_line.product_id:
+                            for key in analytic_i.keys():
+                                try:
+                                    current_bill_pairs.add((bill_line.product_id.id, int(key)))
+                                except (ValueError, TypeError):
+                                    continue
+
+                    # Duplicate check: validate each (product, property) pair individually.
+                    # A broad query fetches candidates, then Python filters to exact pairs
+                    # to avoid false positives from a cross-product of all products × all properties.
+                    dup = move.env["account.analytic.line"]
+                    if current_bill_pairs:
+                        all_product_ids = list({p for p, _ in current_bill_pairs})
+                        all_analytic_ids = list({a for _, a in current_bill_pairs})
+                        broad_candidates = move.env["account.analytic.line"].search([
+                            ("product_id", "in", all_product_ids),
+                            ("account_id", "in", all_analytic_ids),
+                            ("category", "=", "vendor_bill"),
+                        ])
+                        dup = broad_candidates.filtered(
+                            lambda l: (l.product_id.id, l.account_id.id) in current_bill_pairs
+                        )
 
                     bill_lines_grouped = {}
                     for bill_line in all_bills:
