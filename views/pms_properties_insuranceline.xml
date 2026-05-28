@@ -27,7 +27,7 @@
         <field name="name">pms.insuranceline.tree</field>
         <field name="model">pms.insuranceline</field>
         <field name="arch" type="xml">
-            <tree string="Insurance Policies Lines" editable="top">
+            <list string="Insurance Policies Lines" editable="top">
                 <field name="name" optional="show"/>
                 <field name="properties_associates" optional="show"/>
                 <field name="coverage_amount" optional="show"/>
@@ -40,7 +40,7 @@
                 <field name="days_to_expire" optional="show"/>
                 <field name="insurance_agent" optional="show"/>
                 <field name="open_claim" optional="show"/>  
-            </tree>
+            </list>
 
         </field>
     </record>

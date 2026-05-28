@@ -31,7 +31,7 @@
     <field name="name">pms.insurance.tree</field>
     <field name="model">pms.insurance</field>
     <field name="arch" type="xml">
-        <tree string="Insurance Policies">
+        <list string="Insurance Policies">
             <field name="name" optional="show"/>
             <field name="insurance_end" optional="show"/>
             <field name="total_coverage_amount" optional="show"/>
@@ -40,7 +40,7 @@
             <field name="insurance_agent" optional="show"/>
             <field name="insurance_type"/>
             <field name="open_claim"/>
-        </tree>
+        </list>
     </field>
 </record>
 

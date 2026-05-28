@@ -8,10 +8,10 @@
             <field name="name">pms.incidence.category.tree</field>
             <field name="model">pms.incidence.category</field>
             <field name="arch" type="xml">
-                <tree string="Incidence Categories">
+                <list string="Incidence Categories">
                     <field name="name"/>
                     <field name="description"/>
-                </tree>
+                </list>
             </field>
         </record>
 
@@ -47,7 +47,7 @@
             <field name="name">incidence.incidence.tree</field>
             <field name="model">pms.incidence</field>
             <field name="arch" type="xml">
-                <tree string="Incidences" decoration-danger="status in ('new', 'in_progress')" decoration-success="status == 'resolved'">
+                <list string="Incidences" decoration-danger="status in ('new', 'in_progress')" decoration-success="status == 'resolved'">
                     <field name="name"/>
                     <field name="reported_by_id"/>
                     <field name="date_reported"/>
@@ -55,7 +55,7 @@
                     <field name="status" widget="badge" decoration-success="status == 'resolved'" decoration-info="status == 'in_progress'" decoration-warning="status == 'new'" decoration-danger="status == 'critical'"/>
                     <field name="priority" widget="priority"/>
                     <field name="assigned_to_id"/>
-                </tree>
+                </list>
             </field>
         </record>
 
