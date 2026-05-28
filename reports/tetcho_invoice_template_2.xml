@@ -1,0 +1,171 @@
+<odoo>
+
+    <record id="action_sale_order_new_report_2" model="ir.actions.report">
+        <field name="name">New Quotation / Order 2</field>
+        <field name="model">sale.order</field>
+        <field name="binding_model_id" ref="model_sale_order"/>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pms.sale_order_new_report_2</field>
+        <field name="binding_view_types">form,list</field>
+        <field name="print_report_name">(object.state in ('draft', 'sent') and 'Quotation - %s' % (object.name)) or 'Order - %s' % (object.name)</field>
+    </record>
+
+    <template id="sale_order_new_report_2">
+        <t t-call="web.html_container">
+            <meta charset="UTF-8"/>
+            <head>
+                <style type="text/css">
+                    body {
+                        font-family: Arial, sans-serif;
+                        color: #1a1a2e;
+                        line-height: 1.3;
+                        font-size: 9pt;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    .header-table { width: 100%; margin-bottom: 8px; }
+                    .logo { height: 160px; width: auto; object-fit: contain; }
+                    .company-name { font-size: 16pt; font-weight: 700; margin: 0; color: #1a1a2e; }
+                    .company-info { font-size: 8pt; color: #64748b; margin: 3px 0 0 0; }
+                    .divider { height: 1px; background: #e2e8f0; margin: 6px 0; }
+                    .doc-title { font-size: 18pt; font-weight: 700; color: #1a1a2e; margin: 6px 0 2px 0; }
+                    .doc-number { font-size: 12pt; color: #10b981; font-weight: 600; margin: 0 0 4px 0; }
+                    .doc-date { font-size: 9pt; color: #64748b; margin: 0 0 8px 0; }
+                    .addr-table { width: 100%; margin: 6px 0; }
+                    .addr-card { background: #f8fafc; border-left: 3px solid #10b981; padding: 8px; border-radius: 6px; }
+                    .addr-card-blue { background: #f8fafc; border-left: 3px solid #0ea5e9; padding: 8px; border-radius: 6px; }
+                    .addr-label { font-size: 7pt; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 600; margin: 0 0 4px 0; }
+                    .addr-value { font-size: 9pt; font-weight: 500; color: #1a1a2e; margin: 0; }
+                    .items-table { width: 100%; border-collapse: collapse; margin: 6px 0; }
+                    .items-table thead th { background: #10b981; color: white; padding: 6px 10px; text-align: left; font-size: 8pt; text-transform: uppercase; }
+                    .items-table thead th:first-child { border-radius: 6px 0 0 0; }
+                    .items-table thead th:last-child { border-radius: 0 6px 0 0; }
+                    .items-table tbody td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: top; font-size: 9pt; }
+                    .items-table tbody tr:last-child td { border-bottom: none; }
+                    .section-row td { background: #f1f5f9 !important; font-weight: 700; font-size: 9pt; padding: 5px 10px !important; }
+                    .note-row td { font-style: italic; color: #64748b; font-size: 8pt; background: #fefce8; }
+                    .total-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+                    .total-box { background-color: #10b981; color: white; border-radius: 8px; padding: 10px 15px; text-align: right; }
+                    .total-label { font-size: 9pt; margin-bottom: 3px; }
+                    .total-amount { font-size: 16pt; font-weight: bold; }
+                    .text-right { text-align: right; }
+                    .text-center { text-align: center; }
+                </style>
+            </head>
+            <t t-foreach="docs" t-as="record">
+                <div class="page">
+                    <table class="header-table">
+                        <tr>
+                            <td style="width: 50%; vertical-align: middle;">
+                                <img t-if="record.company_id.logo"
+                                    t-att-src="image_data_uri(record.company_id.logo)"
+                                    class="logo"
+                                />
+                            </td>
+                            <td style="width: 50%; vertical-align: middle; text-align: right;">
+                                <p class="company-name"><span t-field="record.company_id.name"/></p>
+                                <p class="company-info">
+                                    <span t-field="record.company_id.street"/>, <span t-field="record.company_id.city"/> <span t-field="record.company_id.zip"/><br/>
+                                    <span t-field="record.company_id.phone"/>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div class="divider"/>
+
+                    <h1 class="doc-title">Estimate</h1>
+                    <p class="doc-number"><span t-field="record.name"/></p>
+                    <p class="doc-date"><strong>Date:</strong> <span t-field="record.date_order" t-options='{"widget": "date"}'/></p>
+
+                    <table class="addr-table">
+                        <tr>
+                            <td style="width: 48%; vertical-align: top;">
+                                <div class="addr-card">
+                                    <p class="addr-label">Billing Address</p>
+                                    <p class="addr-value">
+                                        <strong><span t-field="record.partner_id.name"/></strong><br/>
+                                        <span style="color: #64748b;">
+                                            <span t-field="record.partner_id.street"/><br/>
+                                            <span t-field="record.partner_id.city"/> <span t-field="record.partner_id.zip"/>
+                                        </span>
+                                    </p>
+                                </div>
+                            </td>
+                            <td style="width: 4%;"/>
+                            <td style="width: 48%; vertical-align: top;">
+                                <div class="addr-card-blue">
+                                    <p class="addr-label">Job Address</p>
+                                    <p class="addr-value">
+                                        <t t-if="record.custom_job_address">
+                                            <span t-field="record.custom_job_address" style="white-space: pre-line;"/>
+                                        </t>
+                                        <t t-else="">
+                                            <strong><span t-field="record.partner_shipping_id.name"/></strong><br/>
+                                            <span style="color: #64748b;">
+                                                <span t-field="record.partner_shipping_id.street"/><br/>
+                                                <span t-field="record.partner_shipping_id.city"/> <span t-field="record.partner_shipping_id.zip"/>
+                                            </span>
+                                        </t>
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50%;">Description</th>
+                                <th style="width: 12%; text-align: center;">Qty</th>
+                                <th style="width: 14%; text-align: right;">Unit Price</th>
+                                <th style="width: 10%; text-align: center;">Tax</th>
+                                <th style="width: 14%; text-align: right;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="record.order_line" t-as="line">
+                                <t t-if="line.display_type == 'line_section'">
+                                    <tr class="section-row">
+                                        <td colspan="5"><span t-field="line.name"/></td>
+                                    </tr>
+                                </t>
+                                <t t-elif="line.display_type == 'line_note'">
+                                    <tr class="note-row">
+                                        <td colspan="5"><span t-field="line.name"/></td>
+                                    </tr>
+                                </t>
+                                <t t-else="">
+                                    <tr>
+                                        <td><span t-field="line.name"/></td>
+                                        <td class="text-center"><span t-field="line.product_uom_qty"/></td>
+                                        <td class="text-right"><span t-field="line.price_unit"/></td>
+                                        <td class="text-center"><span t-field="line.tax_id"/></td>
+                                        <td class="text-right"><span t-field="line.price_subtotal"/></td>
+                                    </tr>
+                                </t>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <table class="total-table">
+                        <tr>
+                            <td style="width: 60%; border: none;"/>
+                            <td style="width: 40%; border: none;">
+                                <div class="total-box">
+                                    <div class="total-label">Total Amount</div>
+                                    <div class="total-amount">
+                                        <t t-if="record.currency_id"><span t-esc="record.currency_id.symbol"/></t>
+                                        <t t-else="">$</t>
+                                        <span t-esc="'{:,.2f}'.format(record.amount_total)"/>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

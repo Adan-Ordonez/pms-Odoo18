@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="pms.DocumentsDetailsPanelExtension"
+       t-inherit="documents.DocumentsDetailsPanel"
+       t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_field_many2many_tags') and not(.//span[hasclass('fw-bold')])]" position="after">
+            <div t-if="record.data.type !== 'folder'" class="o_pms_documents_receipt_fields mb-3 w-100 border-top border-secondary pt-2 mt-2">
+                <div class="mb-2">
+                    <label class="fw-bold text-muted small d-block mb-1">Monto</label>
+                    <div class="o_field_widget o_field_float">
+                        <FloatField name="'amount'" record="record" readonly="userPermissionViewOnly"/>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 flex-wrap align-items-start">
+                    <div class="flex-grow-1 mb-2" style="min-width: 45%;">
+                        <label class="fw-bold text-muted small d-block mb-1">Fecha publicación recibo</label>
+                        <div class="o_field_widget o_field_date">
+                            <DateField name="'date'" record="record" readonly="userPermissionViewOnly"/>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 mb-2" style="min-width: 45%;">
+                        <label class="fw-bold text-muted small d-block mb-1">Fecha real publicación</label>
+                        <div class="o_field_widget o_field_date">
+                            <DateField name="'real_date'" record="record" readonly="userPermissionViewOnly"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </t>
+</templates>

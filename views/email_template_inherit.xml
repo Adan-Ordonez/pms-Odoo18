@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+        <!-- Disabled for Odoo 18 compatibility - template structure changed -->
+        <!--
+        <template id="mail_notification_layout_inherit" inherit_id="mail.mail_notification_layout">
+        </template>
+        -->
+
+</odoo>

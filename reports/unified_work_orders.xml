@@ -1,0 +1,86 @@
+<odoo>
+
+    <record id="unified_work_orders_tree" model="ir.ui.view">
+        <field name="name">unified.work.orders.list</field>
+        <field name="model">unified.work.orders</field>
+        <field name="arch" type="xml">
+            <list string="All Work Orders" create="false" edit="false" delete="false"
+                  decoration-muted="completed == True"
+                  decoration-danger="on_hold == True and completed == False"
+                  decoration-success="status == 'Completed'"
+                  decoration-warning="source == 'contractor_job' and linked == False">
+                <field name="property_name"/>
+                <field name="work_order_name"/>
+                <field name="vendor"/>
+                <field name="status"/>
+                <field name="source" widget="badge"
+                       decoration-info="source == 'activity'"
+                       decoration-success="source == 'contractor_job'"/>
+                <field name="linked" widget="boolean"/>
+                <field name="bill_created" widget="boolean"/>
+                <field name="completed" widget="boolean"/>
+                <field name="start_date" optional="show"/>
+                <field name="deadline" optional="show"/>
+                <field name="end_date" optional="hide"/>
+                <field name="superintendent" optional="show"/>
+                <field name="county" optional="show"/>
+                <field name="on_hold" optional="hide"/>
+                <button name="action_open_record" type="object" string="Open" icon="fa-external-link"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="unified_work_orders_search" model="ir.ui.view">
+        <field name="name">unified.work.orders.search</field>
+        <field name="model">unified.work.orders</field>
+        <field name="arch" type="xml">
+            <search string="Work Orders">
+                <field name="property_name"/>
+                <field name="work_order_name"/>
+                <field name="vendor"/>
+                <separator/>
+                <filter string="Activities" name="activities_only" domain="[('source', '=', 'activity')]"/>
+                <filter string="Contractor Jobs" name="jobs_only" domain="[('source', '=', 'contractor_job')]"/>
+                <separator/>
+                <filter string="Not Linked" name="not_linked" domain="[('linked', '=', False)]"/>
+                <filter string="No Bill" name="no_bill" domain="[('bill_created', '=', False), ('completed', '=', True)]"/>
+                <filter string="In Progress" name="in_progress" domain="[('completed', '=', False)]"/>
+                <filter string="Completed" name="completed" domain="[('completed', '=', True)]"/>
+                <filter string="On Hold" name="on_hold" domain="[('on_hold', '=', True)]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Property" name="group_property" context="{'group_by': 'property_id'}"/>
+                    <filter string="Contractor" name="group_vendor" context="{'group_by': 'vendor'}"/>
+                    <filter string="Source" name="group_source" context="{'group_by': 'source'}"/>
+                    <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                    <filter string="County" name="group_county" context="{'group_by': 'county'}"/>
+                    <filter string="Superintendent" name="group_super" context="{'group_by': 'superintendent'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_unified_work_orders" model="ir.actions.act_window">
+        <field name="name">All Work Orders</field>
+        <field name="res_model">unified.work.orders</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="unified_work_orders_search"/>
+        <field name="context">{"search_default_in_progress": 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No work orders found.
+            </p>
+            <p>
+                This view combines Project Activities and Contractor Jobs into a single dashboard.
+                Use the Source filter to see only activities or only contractor jobs.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_unified_work_orders"
+              name="All Work Orders"
+              parent="pms.pms_menu_jobs"
+              action="action_unified_work_orders"
+              sequence="2"/>
+
+</odoo>

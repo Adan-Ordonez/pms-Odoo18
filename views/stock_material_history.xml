@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock_move_material_history_tree" model="ir.ui.view">
+        <field name="name">stock.move.material.history.list</field>
+        <field name="model">stock.move</field>
+        <field name="arch" type="xml">
+            <list string="Material History by Project" create="false" edit="false">
+                <field name="date"/>
+                <field name="material_order_id"/>
+                <field name="property_id"/>
+                <field name="property_name"/>
+                <field name="product_id"/>
+                <field name="product_uom_qty" string="Quantity"/>
+                <field name="product_uom"/>
+                <field name="location_id"/>
+                <field name="location_dest_id"/>
+                <field name="state"/>
+                <field name="reference"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="stock_move_material_history_search" model="ir.ui.view">
+        <field name="name">stock.move.material.history.search</field>
+        <field name="model">stock.move</field>
+        <field name="arch" type="xml">
+            <search string="Search Material History">
+                <field name="property_id" string="Project/Property"/>
+                <field name="property_name" string="Property Address"/>
+                <field name="product_id" string="Product"/>
+                <field name="material_order_id" string="Material Order"/>
+                <field name="date"/>
+                
+                <filter name="filter_with_property" string="With Property" domain="[('property_id', '!=', False)]"/>
+                <filter name="filter_by_date" string="This Month" domain="[('date', '&gt;=', (context_today() - relativedelta(months=1)).strftime('%Y-%m-01'))]"/>
+                
+                <group expand="0" string="Group By">
+                    <filter name="group_by_property" string="Property" context="{'group_by': 'property_id'}"/>
+                    <filter name="group_by_product" string="Product" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_by_material_order" string="Material Order" context="{'group_by': 'material_order_id'}"/>
+                    <filter name="group_by_date" string="Date" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="stock_move_material_history_pivot" model="ir.ui.view">
+        <field name="name">stock.move.material.history.pivot</field>
+        <field name="model">stock.move</field>
+        <field name="arch" type="xml">
+            <pivot string="Material Usage Analysis">
+                <field name="property_id" type="row"/>
+                <field name="product_id" type="row"/>
+                <field name="product_uom_qty" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="stock_move_material_history_graph" model="ir.ui.view">
+        <field name="name">stock.move.material.history.graph</field>
+        <field name="model">stock.move</field>
+        <field name="arch" type="xml">
+            <graph string="Material Usage Over Time" type="bar">
+                <field name="date" interval="month"/>
+                <field name="product_uom_qty" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_material_history_by_project" model="ir.actions.act_window">
+        <field name="name">Material History by Project</field>
+        <field name="res_model">stock.move</field>
+        <field name="view_mode">list,pivot,graph,form</field>
+        <field name="domain">[('material_order_id', '!=', False)]</field>
+        <field name="context">{
+            'search_default_filter_with_property': 1,
+            'search_default_group_by_property': 1
+        }</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('stock_move_material_history_tree')}),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('stock_move_material_history_pivot')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('stock_move_material_history_graph')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No material movements found
+            </p>
+            <p>
+                Material movements are automatically created when material orders are delivered.
+                This view shows which materials were assigned to which project.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_material_history_by_project"
+        name="Material History by Project"
+        parent="pms.pms_menu_purchases"
+        action="action_material_history_by_project"
+        sequence="50"/>
+
+</odoo>
+
+
+

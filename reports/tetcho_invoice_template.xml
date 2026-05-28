@@ -1,0 +1,441 @@
+<odoo>
+
+    <record id="action_sale_order_new_report" model="ir.actions.report">
+        <field name="name">New Quotation / Order</field>
+        <field name="model">sale.order</field>
+        <field name="binding_model_id" ref="model_sale_order"/>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pms.sale_order_new_report</field>
+        <field name="binding_view_types">form,list</field>
+        <field name="print_report_name">(object.state in ('draft', 'sent') and 'Quotation - %s' % (object.name)) or 'Order - %s' % (object.name)</field>
+    </record>
+
+    <template id="sale_order_new_report">
+        <t t-call="web.html_container">
+            <meta charset="UTF-8"/>
+            <head>
+                <style type="text/css">
+                    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap');
+                    
+                    body {
+                        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                        color: #1a1a2e;
+                        line-height: 1.5;
+                        font-size: 10pt;
+                    }
+                    
+                    .header-section {
+                        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                        padding: 25px 30px;
+                        border-radius: 12px;
+                        margin-bottom: 25px;
+                        color: white;
+                    }
+                    
+                    .company-name {
+                        font-size: 18pt;
+                        font-weight: 700;
+                        margin: 0;
+                        letter-spacing: -0.5px;
+                    }
+                    
+                    .company-info {
+                        font-size: 9pt;
+                        opacity: 0.9;
+                        margin-top: 5px;
+                    }
+                    
+                    .document-title {
+                        font-size: 28pt;
+                        font-weight: 700;
+                        color: #1a1a2e;
+                        margin: 30px 0 5px 0;
+                        letter-spacing: -1px;
+                    }
+                    
+                    .document-number {
+                        font-size: 14pt;
+                        color: #0ea5e9;
+                        font-weight: 600;
+                        margin-bottom: 20px;
+                    }
+                    
+                    .info-grid {
+                        display: table;
+                        width: 100%;
+                        margin: 25px 0;
+                    }
+                    
+                    .info-card {
+                        background: #f8fafc;
+                        border-radius: 10px;
+                        padding: 20px;
+                        border-left: 4px solid #0ea5e9;
+                    }
+                    
+                    .info-label {
+                        font-size: 8pt;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        color: #64748b;
+                        font-weight: 600;
+                        margin-bottom: 8px;
+                    }
+                    
+                    .info-value {
+                        font-size: 11pt;
+                        font-weight: 500;
+                        color: #1a1a2e;
+                    }
+                    
+                    .items-table {
+                        width: 100%;
+                        border-collapse: separate;
+                        border-spacing: 0;
+                        margin: 25px 0;
+                    }
+                    
+                    .items-table thead th {
+                        background: #1a1a2e;
+                        color: white;
+                        padding: 14px 16px;
+                        text-align: left;
+                        font-weight: 600;
+                        font-size: 9pt;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    }
+                    
+                    .items-table thead th:first-child {
+                        border-radius: 8px 0 0 0;
+                    }
+                    
+                    .items-table thead th:last-child {
+                        border-radius: 0 8px 0 0;
+                    }
+                    
+                    .items-table tbody td {
+                        padding: 14px 16px;
+                        border-bottom: 1px solid #e2e8f0;
+                        vertical-align: top;
+                    }
+                    
+                    .items-table tbody tr:hover {
+                        background: #f8fafc;
+                    }
+                    
+                    .items-table tbody tr:last-child td {
+                        border-bottom: none;
+                    }
+                    
+                    .section-row td {
+                        background: #f1f5f9 !important;
+                        font-weight: 700;
+                        color: #1a1a2e;
+                        font-size: 10pt;
+                        padding: 12px 16px !important;
+                    }
+                    
+                    .note-row td {
+                        font-style: italic;
+                        color: #64748b;
+                        background: #fefce8;
+                        font-size: 9pt;
+                    }
+                    
+                    .total-section {
+                        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+                        color: white;
+                        padding: 20px 25px;
+                        border-radius: 10px;
+                        text-align: right;
+                        margin: 25px 0;
+                    }
+                    
+                    .total-label {
+                        font-size: 10pt;
+                        opacity: 0.9;
+                        margin-bottom: 5px;
+                    }
+                    
+                    .total-amount {
+                        font-size: 24pt;
+                        font-weight: 700;
+                        letter-spacing: -0.5px;
+                    }
+                    
+                    .terms-section {
+                        background: #f8fafc;
+                        border-radius: 10px;
+                        padding: 25px;
+                        margin-top: 30px;
+                        page-break-inside: avoid;
+                    }
+                    
+                    .terms-title {
+                        font-size: 11pt;
+                        font-weight: 700;
+                        color: #1a1a2e;
+                        margin: 20px 0 10px 0;
+                        padding-bottom: 5px;
+                        border-bottom: 2px solid #0ea5e9;
+                        display: inline-block;
+                    }
+                    
+                    .terms-title:first-child {
+                        margin-top: 0;
+                    }
+                    
+                    .terms-content {
+                        font-size: 9pt;
+                        color: #475569;
+                        line-height: 1.6;
+                    }
+                    
+                    .terms-content p {
+                        margin: 8px 0;
+                    }
+                    
+                    .terms-content ul {
+                        margin: 8px 0;
+                        padding-left: 20px;
+                    }
+                    
+                    .terms-content li {
+                        margin: 5px 0;
+                    }
+                    
+                    .divider {
+                        height: 1px;
+                        background: linear-gradient(to right, transparent, #e2e8f0, transparent);
+                        margin: 25px 0;
+                    }
+                    
+                    .footer-note {
+                        text-align: center;
+                        font-size: 8pt;
+                        color: #94a3b8;
+                        margin-top: 30px;
+                        padding-top: 15px;
+                        border-top: 1px solid #e2e8f0;
+                    }
+                    
+                    .text-right { text-align: right; }
+                    .text-center { text-align: center; }
+                    .font-mono { font-family: 'SF Mono', Monaco, monospace; }
+                </style>
+            </head>
+            <t t-foreach="docs" t-as="record">
+                <div class="page">
+                    <!-- Header with Company Info -->
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="width: 50%; vertical-align: middle;">
+                                <img t-if="record.company_id.logo"
+                                    t-att-src="image_data_uri(record.company_id.logo)"
+                                    style="max-height: 70px; max-width: 180px; object-fit: contain;"
+                                />
+                            </td>
+                            <td style="width: 50%; vertical-align: middle; text-align: right;">
+                                <p class="company-name" style="color: #1a1a2e; margin: 0;"><span t-field="record.company_id.name"/></p>
+                                <p class="company-info" style="color: #64748b; margin: 5px 0 0 0;">
+                                    <span t-field="record.company_id.street"/>, <span t-field="record.company_id.city"/> <span t-field="record.company_id.zip"/><br/>
+                                    <span t-field="record.company_id.phone"/>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <div class="divider"/>
+                    
+                    <!-- Document Title -->
+                    <h1 class="document-title">Estimate</h1>
+                    <p class="document-number"><span t-field="record.name"/></p>
+                    <p style="margin: 0; color: #64748b; font-size: 10pt;">
+                        <strong>Date:</strong> <span t-field="record.date_order" t-options='{"widget": "date"}'/>
+                    </p>
+                    
+                    <!-- Addresses -->
+                    <table style="width: 100%; margin: 25px 0;">
+                        <tr>
+                            <td style="width: 48%; vertical-align: top;">
+                                <div class="info-card">
+                                    <p class="info-label">Billing Address</p>
+                                    <p class="info-value" style="margin: 0;">
+                                        <strong><span t-field="record.partner_id.name"/></strong><br/>
+                                        <span style="color: #64748b;">
+                                            <span t-field="record.partner_id.street"/><br/>
+                                            <span t-field="record.partner_id.city"/> <span t-field="record.partner_id.zip"/>
+                                        </span>
+                                    </p>
+                                </div>
+                            </td>
+                            <td style="width: 4%;"/>
+                            <td style="width: 48%; vertical-align: top;">
+                                <div class="info-card" style="border-left-color: #10b981;">
+                                    <p class="info-label">Job Address</p>
+                                    <p class="info-value" style="margin: 0;">
+                                        <t t-if="record.custom_job_address">
+                                            <span t-field="record.custom_job_address" style="white-space: pre-line;"/>
+                                        </t>
+                                        <t t-else="">
+                                        <strong><span t-field="record.partner_shipping_id.name"/></strong><br/>
+                                        <span style="color: #64748b;">
+                                            <span t-field="record.partner_shipping_id.street"/><br/>
+                                            <span t-field="record.partner_shipping_id.city"/> <span t-field="record.partner_shipping_id.zip"/>
+                                        </span>
+                                        </t>
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <!-- Items Table -->
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50%;">Description</th>
+                                <th style="width: 12%; text-align: center;">Qty</th>
+                                <th style="width: 14%; text-align: right;">Unit Price</th>
+                                <th style="width: 10%; text-align: center;">Tax</th>
+                                <th style="width: 14%; text-align: right;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="record.order_line" t-as="line">
+                                <t t-if="line.display_type == 'line_section'">
+                                    <tr class="section-row">
+                                        <td colspan="5"><span t-field="line.name"/></td>
+                                    </tr>
+                                </t>
+                                <t t-elif="line.display_type == 'line_note'">
+                                    <tr class="note-row">
+                                        <td colspan="5"><span t-field="line.name"/></td>
+                                    </tr>
+                                </t>
+                                <t t-else="">
+                                    <tr>
+                                        <td><span t-field="line.name"/></td>
+                                        <td class="text-center"><span t-field="line.product_uom_qty"/></td>
+                                        <td class="text-right font-mono"><span t-field="line.price_unit"/></td>
+                                        <td class="text-center"><span t-field="line.tax_id"/></td>
+                                        <td class="text-right font-mono"><span t-field="line.price_subtotal"/></td>
+                                    </tr>
+                                </t>
+                            </t>
+                        </tbody>
+                    </table>
+                    
+                    <!-- Total -->
+                    <br/>
+                    <br/>
+                    <table style="width: 100%; border-collapse: collapse; page-break-inside: avoid;">
+                        <tr>
+                            <td style="width: 60%; border: none;"></td>
+                            <td style="width: 40%; border: none;">
+                                <table style="width: 100%; background-color: #10b981; color: white; border-radius: 10px;">
+                                    <tr>
+                                        <td style="padding: 20px 25px; text-align: right; border: none;">
+                                            <div style="font-size: 10pt; margin-bottom: 5px;">Total Amount</div>
+                                            <div style="font-size: 24pt; font-weight: bold;">
+                                                <t t-if="record.currency_id">
+                                                    <span t-esc="record.currency_id.symbol"/>
+                                                </t>
+                                                <t t-else="">$</t>
+                                                <span t-esc="'{:,.2f}'.format(record.amount_total)"/>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <!-- Service Agreement - Only for ADG Homes and CFL Rehabbers -->
+                    <t t-if="record.company_id.id in [42, 47, 77]">
+                        <div class="terms-section" style="margin-top: 40px;">
+                            <h2 style="font-size: 14pt; font-weight: 700; color: #1a1a2e; text-align: center; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 1px;">
+                                Service Agreement &amp; Estimate Approval
+                            </h2>
+                            <p class="terms-content" style="margin-bottom: 15px;">
+                                By approving this estimate, the client agrees to the following terms and conditions:
+                            </p>
+
+                            <div class="terms-title">1. Scope of Work</div>
+                            <p class="terms-content">
+                                All work will be performed as outlined in the estimate provided. Any additional work requested will be subject to a change order and additional charges.
+                            </p>
+
+                            <div class="terms-title">2. Pricing</div>
+                            <p class="terms-content">
+                                The total price reflects the scope described. Any unforeseen conditions or changes may result in adjustments to the final cost.
+                            </p>
+
+                            <div class="terms-title">3. Payment Terms</div>
+                            <div class="terms-content">
+                                <ul>
+                                    <li>A 60% deposit is required to schedule and begin the project.</li>
+                                    <li>The remaining 40% balance is due upon completion of the work.</li>
+                                </ul>
+                                <p>Failure to make payments as agreed may result in project delays or suspension.</p>
+                            </div>
+
+                            <div class="terms-title">4. Scheduling</div>
+                            <p class="terms-content">
+                                Work will be scheduled upon receipt of the deposit. Delays due to weather, material shortages, or unforeseen circumstances may occur.
+                            </p>
+
+                            <div class="terms-title">5. Permits &amp; Compliance</div>
+                            <p class="terms-content">
+                                Permits are not included unless specified. The client is responsible for HOA approvals if applicable.
+                            </p>
+
+                            <div class="terms-title">6. Warranty</div>
+                            <p class="terms-content">
+                                A limited workmanship warranty may be provided depending on the type of work performed.
+                            </p>
+
+                            <div class="terms-title">7. Liability</div>
+                            <p class="terms-content">
+                                The company is not responsible for pre-existing conditions, hidden damages, or issues not visible at the time of estimate.
+                            </p>
+
+                            <div class="terms-title">8. Cancellation</div>
+                            <p class="terms-content">
+                                Cancellations must be made in advance. Deposits may be non-refundable depending on project status.
+                            </p>
+
+                            <div class="divider" style="margin: 30px 0;"/>
+
+                            <h3 style="font-size: 12pt; font-weight: 700; color: #1a1a2e; margin: 0 0 20px 0;">Client Approval</h3>
+                            <p class="terms-content" style="margin-bottom: 25px;">
+                                By signing below, I acknowledge that I have read and agree to the terms above and approve the estimate provided.
+                            </p>
+
+                            <table style="width: 100%; margin-top: 10px;">
+                                <tr>
+                                    <td style="width: 50%; padding: 10px 0; border: none;">
+                                        <p style="margin: 0 0 5px 0; font-size: 9pt; color: #64748b; font-weight: 600;">Client Name:</p>
+                                        <div style="border-bottom: 1px solid #1a1a2e; height: 30px; width: 90%;"/>
+                                    </td>
+                                    <td style="width: 50%; padding: 10px 0; border: none;">
+                                        <p style="margin: 0 0 5px 0; font-size: 9pt; color: #64748b; font-weight: 600;">Date:</p>
+                                        <div style="border-bottom: 1px solid #1a1a2e; height: 30px; width: 90%;"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" style="padding: 20px 0 10px 0; border: none;">
+                                        <p style="margin: 0 0 5px 0; font-size: 9pt; color: #64748b; font-weight: 600;">Signature:</p>
+                                        <div style="border-bottom: 1px solid #1a1a2e; height: 40px; width: 60%;"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </t>
+
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,69 @@
+<odoo>
+
+<record id="view_documents_search_inherit" model="ir.ui.view">
+    <field name="name">documents.search.inherit</field>
+    <field name="model">documents.document</field>
+    <field name="inherit_id" ref="documents.document_view_search"/>
+    <field name="arch" type="xml">
+        <xpath expr="//field[@name='index_content']" position="after">
+            <field name="amount"/>
+        </xpath>
+    </field>
+</record>
+
+
+
+<!-- droplet / inspector: cargar campos en el cliente -->
+<record id="documents_list_inherit_pms_panel_fields" model="ir.ui.view">
+    <field name="name">documents.document.list.pms.panel.fields</field>
+    <field name="model">documents.document</field>
+    <field name="inherit_id" ref="documents.documents_view_list"/>
+    <field name="arch" type="xml">
+        <xpath expr="//field[@name='id']" position="after">
+            <field name="amount" column_invisible="1"/>
+            <field name="date" column_invisible="1"/>
+            <field name="real_date" column_invisible="1"/>
+        </xpath>
+    </field>
+</record>
+
+<record id="documents_kanban_inherit_pms_panel_fields" model="ir.ui.view">
+    <field name="name">documents.document.kanban.pms.panel.fields</field>
+    <field name="model">documents.document</field>
+    <field name="inherit_id" ref="documents.document_view_kanban"/>
+    <field name="arch" type="xml">
+        <xpath expr="//field[@name='owner_id']" position="after">
+            <field name="amount" invisible="1"/>
+            <field name="date" invisible="1"/>
+            <field name="real_date" invisible="1"/>
+        </xpath>
+    </field>
+</record>
+
+<record id="documents_activity_inherit_pms_panel_fields" model="ir.ui.view">
+    <field name="name">documents.document.activity.pms.panel.fields</field>
+    <field name="model">documents.document</field>
+    <field name="inherit_id" ref="documents.documents_view_activity"/>
+    <field name="arch" type="xml">
+        <xpath expr="//field[@name='folder_id']" position="after">
+            <field name="amount" invisible="1"/>
+            <field name="date" invisible="1"/>
+            <field name="real_date" invisible="1"/>
+        </xpath>
+    </field>
+</record>
+
+<record id="document_form_details_inherit_pms" model="ir.ui.view">
+    <field name="name">documents.form.details.pms</field>
+    <field name="model">documents.document</field>
+    <field name="inherit_id" ref="documents.document_view_form_details"/>
+    <field name="arch" type="xml">
+        <xpath expr="//field[@name='tag_ids']" position="after">
+            <field name="amount" invisible="type == 'folder'"/>
+            <field name="date" invisible="type == 'folder'"/>
+            <field name="real_date" invisible="type == 'folder'"/>
+        </xpath>
+    </field>
+</record>
+
+</odoo>

@@ -1,0 +1,93 @@
+<odoo>
+
+    <!-- Account Payment Term Inherits -->
+
+    <record id="view_payment_term_form_inherit" model="ir.ui.view">
+        <field name="name">account.payment.term.form.inherit</field>
+        <field name="model">account.payment.term</field>
+        <field name="inherit_id" ref="account.view_payment_term_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='display_on_invoice']" position="after">
+                <group string="Payment Type Classification">
+                    <field name="anticipated_payment" string="Prepaid / Advance Payment"/> 
+                    <div colspan="2" style="color: #666; font-size: 90%; font-style: italic;">
+                        Check this for advance payments. These will NOT trigger on-hold alerts.
+                    </div>
+                    <field name="utility_payment" string="Utility Payment"/>
+                    <div colspan="2" style="color: #666; font-size: 90%; font-style: italic;">
+                        Check this for utility bills. These will NOT trigger on-hold alerts.
+                    </div>
+                    <field name="material_payment" string="Material Payment"/> 
+                    <div colspan="2" style="color: #666; font-size: 90%; font-style: italic;">
+                        Check this for material orders. These will NOT trigger on-hold alerts.
+                    </div>
+                    <div colspan="2" style="color: #e74c3c; font-weight: bold; padding: 10px; background-color: #fef5e7; border-left: 4px solid #e67e22; margin-top: 10px;">
+                        ⚠️ On Hold Logic: Only invoices for completed work (without any of the above flags) will trigger automatic on-hold alerts when overdue by 3+ days.
+                    </div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Account Payment Inherits -->
+
+    <record id="view_payment_tree_inherit" model="ir.ui.view">
+        <field name="name">account.payment.tree.inherit</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="after">
+                    <field name="delivery_date"/>
+                    <field name="check_number"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_payment_form_inherit" model="ir.ui.view">
+        <field name="name">account.payment.form.inherit</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='unmark_as_sent']" position="after">
+                <button name="action_open_reconcile" string="Reconcile" type="object" class="btn btn-primary"
+                        invisible="not can_reconcile"
+                        icon="fa-exchange"/>
+            </xpath>
+            <xpath expr="//field[@name='company_id']" position="after">
+                    <field name="can_reconcile" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='partner_bank_id']" position="after">
+                    <field name="delivery_date"/>
+            </xpath>
+            <!-- <xpath expr="//field[@name='payment_transaction_id']" position="after">
+                    <field name="account_number" invisible="partner_type != 'customer'"/>
+            </xpath>
+            <xpath expr="//field[@name='payment_transaction_id']" position="after">
+                    <field name="account_holder" invisible="partner_type != 'customer'"/>
+            </xpath>
+            <xpath expr="//field[@name='payment_transaction_id']" position="after">
+                    <field name="routing_number" invisible="partner_type != 'customer'"/>
+            </xpath> -->
+            <xpath expr="//field[@name='check_number']" position="attributes">
+                    <attribute name="readonly">false</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Account Payment Register Inherits -->
+
+    <record id="view_payment_register_inherit" model="ir.ui.view">
+        <field name="name">account.payment.register.inherit</field>
+        <field name="model">account.payment.register</field>
+        <field name="inherit_id" ref="account.view_account_payment_register_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='payment_date']" position="after">
+                <field name="analytic_account_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Account Journal Inherits - Show payment settings for credit card journals -->
+    
+
+</odoo>

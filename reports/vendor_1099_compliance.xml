@@ -1,0 +1,89 @@
+<odoo>
+
+    <record id="vendor_1099_compliance_tree" model="ir.ui.view">
+        <field name="name">vendor.1099.compliance.list</field>
+        <field name="model">vendor.1099.compliance</field>
+        <field name="arch" type="xml">
+            <list string="1099 Compliance Monitor" create="false" edit="false" delete="false"
+                  decoration-danger="compliance_status == 'non_compliant'"
+                  decoration-warning="compliance_status == 'at_risk'"
+                  decoration-info="compliance_status in ('missing_tin', 'missing_address')">
+                <field name="partner_id"/>
+                <field name="partner_vat"/>
+                <field name="partner_street"/>
+                <field name="box_1099_id"/>
+                <field name="ytd_total" string="YTD Payments ($)" widget="monetary"/>
+                <field name="payment_count"/>
+                <field name="last_payment_date"/>
+                <field name="compliance_status" widget="badge"
+                       decoration-danger="compliance_status == 'non_compliant'"
+                       decoration-warning="compliance_status == 'at_risk'"
+                       decoration-info="compliance_status in ('missing_tin', 'missing_address')"
+                       decoration-success="compliance_status == 'ok'"/>
+                <field name="fiscal_year"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="vendor_1099_compliance_search" model="ir.ui.view">
+        <field name="name">vendor.1099.compliance.search</field>
+        <field name="model">vendor.1099.compliance</field>
+        <field name="arch" type="xml">
+            <search string="1099 Compliance">
+                <field name="partner_id"/>
+                <field name="compliance_status"/>
+                <field name="box_1099_id"/>
+                <separator/>
+                <filter string="Non-Compliant (Missing Box &gt;$600)"
+                        name="non_compliant"
+                        domain="[('compliance_status', '=', 'non_compliant')]"/>
+                <filter string="Approaching $600"
+                        name="at_risk"
+                        domain="[('compliance_status', '=', 'at_risk')]"/>
+                <filter string="Missing TIN/EIN"
+                        name="missing_tin"
+                        domain="[('compliance_status', '=', 'missing_tin')]"/>
+                <filter string="Missing Address"
+                        name="missing_address"
+                        domain="[('compliance_status', '=', 'missing_address')]"/>
+                <filter string="All Issues"
+                        name="all_issues"
+                        domain="[('compliance_status', '!=', 'ok')]"/>
+                <separator/>
+                <filter string="Over $600"
+                        name="over_threshold"
+                        domain="[('ytd_total', '>=', 600)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_status" context="{'group_by': 'compliance_status'}"/>
+                    <filter string="1099 Box" name="group_box" context="{'group_by': 'box_1099_id'}"/>
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_vendor_1099_compliance" model="ir.actions.act_window">
+        <field name="name">1099 Compliance Monitor</field>
+        <field name="res_model">vendor.1099.compliance</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="vendor_1099_compliance_search"/>
+        <field name="context">{"search_default_all_issues": 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                All vendors are 1099 compliant!
+            </p>
+            <p>
+                This report monitors vendors approaching or exceeding the $600 IRS reporting threshold
+                who are missing a 1099 Box classification, TIN/EIN, or address.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_1099_compliance"
+              name="1099 Compliance"
+              parent="account.menu_finance_reports"
+              action="action_vendor_1099_compliance"
+              sequence="25"/>
+
+</odoo>

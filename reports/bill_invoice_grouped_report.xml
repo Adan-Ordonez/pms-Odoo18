@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_bill_invoice_grouped_report_tree" model="ir.ui.view">
+        <field name="name">bill.invoice.grouped.report.list</field>
+        <field name="model">bill.invoice.grouped.report</field>
+        <field name="arch" type="xml">
+            <list string="Bill-Invoice Grouped Report" create="false" edit="false" delete="false">
+                <field name="bill_name" string="Bill #"/>
+                <field name="bill_date"/>
+                <field name="bill_partner"/>
+                <field name="bill_ref"/>
+                <field name="state"/>
+                <field name="payment_state"/>
+                <field name="invoice_count"/>
+                <field name="invoice_names"/>
+                <field name="bill_amount" sum="Total Bill Amount"/>
+                <field name="total_sales" sum="Total Sales"/>
+                <field name="profit" sum="Total Profit"/>
+                <field name="margin" avg="Avg Margin"/>
+                <field name="analytic_accounts"/>
+                <field name="house_model"/>
+                <button name="open_bill" type="object" string="View Bill" class="oe_highlight"/>
+                <button name="open_related_invoices" type="object" string="View Invoices" invisible="invoice_count == 0"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_bill_invoice_grouped_report_pivot" model="ir.ui.view">
+        <field name="name">bill.invoice.grouped.report.pivot</field>
+        <field name="model">bill.invoice.grouped.report</field>
+        <field name="arch" type="xml">
+            <pivot string="Bill-Invoice Analysis">
+                <field name="bill_partner" type="row"/>
+                <field name="house_model" type="row"/>
+                <field name="bill_amount" type="measure"/>
+                <field name="total_sales" type="measure"/>
+                <field name="profit" type="measure"/>
+                <field name="margin" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_bill_invoice_grouped_report_graph" model="ir.ui.view">
+        <field name="name">bill.invoice.grouped.report.graph</field>
+        <field name="model">bill.invoice.grouped.report</field>
+        <field name="arch" type="xml">
+            <graph string="Bill-Invoice Analysis" type="bar">
+                <field name="bill_partner"/>
+                <field name="profit" type="measure"/>
+                <field name="total_sales" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_bill_invoice_grouped_report_search" model="ir.ui.view">
+        <field name="name">bill.invoice.grouped.report.search</field>
+        <field name="model">bill.invoice.grouped.report</field>
+        <field name="arch" type="xml">
+            <search string="Search Bill-Invoice Report">
+                <field name="bill_name"/>
+                <field name="bill_partner"/>
+                <field name="bill_ref"/>
+                <field name="analytic_accounts"/>
+                <field name="house_model"/>
+                <filter string="Posted" name="posted" domain="[('state', '=', 'posted')]"/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Paid" name="paid" domain="[('payment_state', '=', 'paid')]"/>
+                <filter string="Not Paid" name="not_paid" domain="[('payment_state', '=', 'not_paid')]"/>
+                <filter string="Has Invoices" name="has_invoices" domain="[('invoice_count', '>', 0)]"/>
+                <filter string="No Invoices" name="no_invoices" domain="[('invoice_count', '=', 0)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Vendor" name="group_vendor" context="{'group_by':'bill_partner'}"/>
+                    <filter string="House Model" name="group_house_model" context="{'group_by':'house_model'}"/>
+                    <filter string="State" name="group_state" context="{'group_by':'state'}"/>
+                    <filter string="Payment State" name="group_payment_state" context="{'group_by':'payment_state'}"/>
+                    <filter string="Bill Date" name="group_bill_date" context="{'group_by':'bill_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_bill_invoice_grouped_report" model="ir.actions.act_window">
+        <field name="name">Bill-Invoice Report (Grouped)</field>
+        <field name="res_model">bill.invoice.grouped.report</field>
+        <field name="view_mode">list,pivot,graph</field>
+        <field name="search_view_id" ref="view_bill_invoice_grouped_report_search"/>
+        <field name="context">{'search_default_posted': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No data available for the Bill-Invoice Grouped Report
+            </p>
+            <p>
+                This report groups bills with their related invoices, showing total sales, purchases, profit, and margin.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_bill_invoice_grouped_report"
+        name="Bill-Invoice Grouped"
+        action="action_bill_invoice_grouped_report"
+        parent="account.menu_finance_payables"
+        sequence="2"
+    />
+
+
+    <record id="view_invoice_bill_grouped_report_tree" model="ir.ui.view">
+        <field name="name">invoice.bill.grouped.report.list</field>
+        <field name="model">invoice.bill.grouped.report</field>
+        <field name="arch" type="xml">
+            <list string="Invoice-Bill Grouped Report" create="false" edit="false" delete="false">
+                <field name="invoice_name" string="Invoice #"/>
+                <field name="invoice_date"/>
+                <field name="invoice_partner"/>
+                <field name="invoice_ref"/>
+                <field name="state"/>
+                <field name="payment_state"/>
+                <field name="bill_count"/>
+                <field name="bill_names"/>
+                <field name="invoice_amount" sum="Total Invoice Amount"/>
+                <field name="total_purchases" sum="Total Purchases"/>
+                <field name="profit" sum="Total Profit"/>
+                <field name="margin" avg="Avg Margin"/>
+                <field name="analytic_accounts"/>
+                <field name="house_model"/>
+                <button name="open_invoice" type="object" string="View Invoice" class="oe_highlight"/>
+                <button name="open_related_bills" type="object" string="View Bills" invisible="bill_count == 0"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_invoice_bill_grouped_report_pivot" model="ir.ui.view">
+        <field name="name">invoice.bill.grouped.report.pivot</field>
+        <field name="model">invoice.bill.grouped.report</field>
+        <field name="arch" type="xml">
+            <pivot string="Invoice-Bill Analysis">
+                <field name="invoice_partner" type="row"/>
+                <field name="house_model" type="row"/>
+                <field name="invoice_amount" type="measure"/>
+                <field name="total_purchases" type="measure"/>
+                <field name="profit" type="measure"/>
+                <field name="margin" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_invoice_bill_grouped_report_graph" model="ir.ui.view">
+        <field name="name">invoice.bill.grouped.report.graph</field>
+        <field name="model">invoice.bill.grouped.report</field>
+        <field name="arch" type="xml">
+            <graph string="Invoice-Bill Analysis" type="bar">
+                <field name="invoice_partner"/>
+                <field name="profit" type="measure"/>
+                <field name="total_purchases" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_invoice_bill_grouped_report_search" model="ir.ui.view">
+        <field name="name">invoice.bill.grouped.report.search</field>
+        <field name="model">invoice.bill.grouped.report</field>
+        <field name="arch" type="xml">
+            <search string="Search Invoice-Bill Report">
+                <field name="invoice_name"/>
+                <field name="invoice_partner"/>
+                <field name="invoice_ref"/>
+                <field name="analytic_accounts"/>
+                <field name="house_model"/>
+                <filter string="Posted" name="posted" domain="[('state', '=', 'posted')]"/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Paid" name="paid" domain="[('payment_state', '=', 'paid')]"/>
+                <filter string="Not Paid" name="not_paid" domain="[('payment_state', '=', 'not_paid')]"/>
+                <filter string="Has Bills" name="has_bills" domain="[('bill_count', '>', 0)]"/>
+                <filter string="No Bills" name="no_bills" domain="[('bill_count', '=', 0)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Customer" name="group_customer" context="{'group_by':'invoice_partner'}"/>
+                    <filter string="House Model" name="group_house_model" context="{'group_by':'house_model'}"/>
+                    <filter string="State" name="group_state" context="{'group_by':'state'}"/>
+                    <filter string="Payment State" name="group_payment_state" context="{'group_by':'payment_state'}"/>
+                    <filter string="Invoice Date" name="group_invoice_date" context="{'group_by':'invoice_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_invoice_bill_grouped_report" model="ir.actions.act_window">
+        <field name="name">Invoice-Bill Report (Grouped)</field>
+        <field name="res_model">invoice.bill.grouped.report</field>
+        <field name="view_mode">list,pivot,graph</field>
+        <field name="search_view_id" ref="view_invoice_bill_grouped_report_search"/>
+        <field name="context">{'search_default_posted': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No data available for the Invoice-Bill Grouped Report
+            </p>
+            <p>
+                This report groups invoices with their related bills, showing total sales, purchases, profit, and margin.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_invoice_bill_grouped_report"
+        name="Invoice-Bill Grouped"
+        action="action_invoice_bill_grouped_report"
+        parent="account.menu_finance_receivables"
+        sequence="2"
+    />
+
+</odoo>
+
