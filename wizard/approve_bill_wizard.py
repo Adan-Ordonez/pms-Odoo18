@@ -10,16 +10,13 @@ class ApproveBillsWizard(models.TransientModel):
     
     def generate_bill_approval_reports(self):
         self.ensure_one()
-        context = {
-            'default_user_ids': self.user_ids.ids, 
-            }
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'approve.bills.tree',
-            'view_mode': 'list',
-            'res_model': 'approve.bills',
-            'context': context,
-        }
+        # Return the saved action (with its database id) instead of an anonymous
+        # inline dict. Odoo's web client uses the action id to encode the current
+        # search state (filters, grouping, sort order) in the URL hash, so that
+        # navigating into a bill and pressing Back in the breadcrumb restores the
+        # exact list state the user had configured.
+        action = self.env.ref('pms.approve_bills_action').sudo().read()[0]
+        return action
 
 
     

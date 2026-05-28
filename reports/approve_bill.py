@@ -115,12 +115,15 @@ class ApproveBill(models.Model):
 
     def open_record(self):
         self.ensure_one()
+        bill = self.env['account.move'].browse(self.id)
         return {
             'type': 'ir.actions.act_window',
+            'name': bill.name or 'Bill',
             'res_model': 'account.move',
-            'view_mode': 'form',
+            'views': [(False, 'form')],
             'res_id': self.id,
             'target': 'current',
+            'context': self.env.context,
         }
 
     def create_check_button(self):
