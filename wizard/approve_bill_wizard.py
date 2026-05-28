@@ -6,7 +6,12 @@ class ApproveBillsWizard(models.TransientModel):
     _name = 'approve.bills.wizard'
     _description = 'Approve Bills Wizard'
 
-    user_ids = fields.Many2many("res.users", string="User", required=True)
+    user_ids = fields.Many2many(
+        "res.users",
+        string="User",
+        required=True,
+        default=lambda self: self.env.user,
+    )
     
     def generate_bill_approval_reports(self):
         self.ensure_one()

@@ -33,7 +33,7 @@ class bill_report(models.Model):
 #             "checked again.",
 #    )
 #    # Custom fields
-    contractor = fields.Many2one("res.partner", string="Contractor")
+    contractor = fields.Many2one("res.partner", string="Contractor", readonly=True)
     linked_activities = fields.Many2one("pms.projects.routes", string="Linked Activity", readonly=True)
     linked_activities_end_date = fields.Datetime(string="Activity End Date", readonly=True)
     activity_completed = fields.Boolean(related='linked_activities.completed', string='Activity Completed', readonly=True)
@@ -83,7 +83,7 @@ class bill_report(models.Model):
             ('entry', 'Journal Entry'), ('out_invoice', 'Customer Invoice'), ('out_refund', 'Customer Credit Note'),
             ('in_invoice', 'Vendor Bill'), ('in_refund', 'Vendor Credit Note'), ('out_receipt', 'Sales Receipt'), ('in_receipt', 'Purchase Receipt'),
         ])
-    house_model = fields.Many2one("pms.housemodels", string="House Model")
+    house_model = fields.Many2one("pms.housemodels", string="House Model", readonly=True)
     house_models = fields.Char(string="House Models", readonly=True, compute="_compute_house_models")
     
     @api.depends("house_model", "analytic_accounts")

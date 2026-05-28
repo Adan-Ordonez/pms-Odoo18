@@ -210,16 +210,31 @@ class AccountPartialReconcile(models.Model):
     def create(self, vals_list):
         result = super().create(vals_list)
         logged_pairs = set()
+
+        # Batch-fetch all moves involved in these reconciliations
+        all_move_ids = set()
+        for rec in result:
+            all_move_ids.add(rec.debit_move_id.move_id.id)
+            all_move_ids.add(rec.credit_move_id.move_id.id)
+        all_move_ids.discard(False)
+
+        # Map move_id → payment for all relevant moves in one query
+        payments_by_move = {
+            p.move_id.id: p
+            for p in self.env['account.payment'].search(
+                [('move_id', 'in', list(all_move_ids))]
+            )
+        }
+
         for rec in result:
             debit_move = rec.debit_move_id.move_id
             credit_move = rec.credit_move_id.move_id
 
-            # Determine which side is the payment and which is the vendor bill
-            if debit_move.payment_id and credit_move.move_type == 'in_invoice':
-                payment = debit_move.payment_id
+            if payments_by_move.get(debit_move.id) and credit_move.move_type == 'in_invoice':
+                payment = payments_by_move[debit_move.id]
                 bill = credit_move
-            elif credit_move.payment_id and debit_move.move_type == 'in_invoice':
-                payment = credit_move.payment_id
+            elif payments_by_move.get(credit_move.id) and debit_move.move_type == 'in_invoice':
+                payment = payments_by_move[credit_move.id]
                 bill = debit_move
             else:
                 continue

@@ -89,6 +89,8 @@ class AccountMove(models.Model):
         store=True,
         help="(Profit / Total Sales) * 100"
     )
+    invoice_user_id = fields.Many2one('res.users', default=lambda self: self.env.user)
+
     bill_alert = fields.Boolean(string="Bill Alert", default=False)
     bill_price_alert = fields.Boolean(string="Product Price Alert", default=False)
     budget_date = fields.Date(string="Budget Date")
@@ -340,9 +342,8 @@ class AccountMove(models.Model):
         """
         self.name = False
         
+    @api.model_create_multi
     def create(self, vals_list):
-        if isinstance(vals_list, dict):
-            vals_list = [vals_list]
         for vals in vals_list:
             if not vals.get('invoice_user_id') and vals.get('move_type') in ('in_invoice', 'in_refund'):
                 vals['invoice_user_id'] = self.env.uid
