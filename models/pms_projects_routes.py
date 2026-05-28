@@ -15,6 +15,7 @@ class pms_projects_routes(models.Model):
     _name = "pms.projects.routes"
     _description = "Table for Property Project Management Routes"
     _inherit = ['mail.thread', 'mail.activity.mixin', 'documents.mixin']
+    _rec_name = 'activity_display_name'
 
     # Project Property
     project_property = fields.Many2one("pms.projects", string="Project Property", required=True, default=lambda self: self._default_project_property())   
@@ -59,6 +60,27 @@ class pms_projects_routes(models.Model):
     invoice_counter = fields.Integer(string="Invoice Counter", default=0, readonly=True)
     invoice_id = fields.Integer(string="Invoice ID", readonly=True)
     expected_end_date = fields.Datetime(string="Expected End Date", readonly=False)
+
+    activity_display_name = fields.Char(
+        compute='_compute_activity_display_name',
+        string='Activity Display Name',
+        store=True,
+    )
+
+    @api.depends('name', 'product', 'address', 'vendor', 'completed', 'end_date')
+    def _compute_activity_display_name(self):
+        for rec in self:
+            job = rec.product.name if rec.product else (rec.name.display_name if rec.name else '?')
+            prop = rec.address.name if rec.address else ''
+            status = '✓ Done' if rec.completed else '⏳ Pending'
+            end = rec.end_date.strftime('%m/%d/%y') if rec.end_date else ''
+            parts = [job]
+            if prop:
+                parts.append(prop)
+            if end:
+                parts.append(f'End: {end}')
+            parts.append(status)
+            rec.activity_display_name = ' | '.join(filter(None, parts))
 
     # Contractor Job Integration
     contractor_job_ids = fields.One2many(

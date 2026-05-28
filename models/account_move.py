@@ -652,11 +652,10 @@ class AccountMove(models.Model):
                                 first_tax_line.amount_currency -= delta_amount * sign
             self._compute_amount()
     
-    # @api.onchange('linked_activities')
-    # def _onchange_linked_activities(self):
-    #     if self.linked_activities:
-    #         self.activity_completed = self.linked_activities.completed
-    #         # self.date_receipted = self.linked_activities.end_date
+    @api.onchange('linked_activities')
+    def _onchange_linked_activities(self):
+        if self.linked_activities:
+            self.activity_completed = self.linked_activities.completed
     
     
     def open_linked_activities(self):

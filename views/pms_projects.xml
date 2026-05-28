@@ -14,7 +14,7 @@
                 <field name="status_construction"/>
                 <field name="on_off_hold"/>
                 <field name="visit_day"/>
-                <field name="last_updated_on"/>
+                <field name="last_updated_on" widget="date"/>
                 <field name="loan_expiration"/>
                 <field name="expected_co_date"/>
                 <separator/>
@@ -312,9 +312,9 @@
                 <field name="duration"/>
                 <field name="phase"/>
                 <field name="company_id"/>
-                <field name="start_date"/>
-                <field name="order_date"/>
-                <field name="end_date"/>
+                <field name="start_date" widget="date"/>
+                <field name="order_date" widget="date"/>
+                <field name="end_date" widget="date"/>
                 <field name="time_spent"/>
                 <field name="completed"/>
                 <field name="county"/>

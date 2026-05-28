@@ -57,121 +57,65 @@ class AccountPayment(models.Model):
         
         return bills
     
+    def _log_payment_details_to_bill(self, bill):
+        """Log payment details to the message history of a specific vendor bill.
+        Called at reconciliation time, so all payment data is guaranteed to be available.
+        """
+        self.ensure_one()
+        payment_date = format_date(self.env, self.date) if self.date else 'N/A'
+        payment_amount = formatLang(self.env, self.amount, currency_obj=self.currency_id) if self.amount else 'N/A'
+        payment_ref = self.memo or self.payment_reference or 'N/A'
+        check_number = getattr(self, 'check_number', False) or 'N/A'
+        bank_account = self.journal_id.name if self.journal_id else 'N/A'
+
+        message_body = f"""
+            <div style="background-color: #D6EBF0; color: #000000; padding: 15px; margin: 10px; border-radius: 10px; border: 1px solid #AED9E1">
+                <h3 style="margin-top: 0; color: #007bff;"><b>Payment Details</b></h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 5px; font-weight: bold; width: 40%;">Payment Number:</td>
+                        <td style="padding: 5px;">{self.name or 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; font-weight: bold;">Bank / Credit Card:</td>
+                        <td style="padding: 5px;">{bank_account}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; font-weight: bold;">Payment Date:</td>
+                        <td style="padding: 5px;">{payment_date}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; font-weight: bold;">Amount:</td>
+                        <td style="padding: 5px;">{payment_amount}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; font-weight: bold;">Check Number:</td>
+                        <td style="padding: 5px;">{check_number}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; font-weight: bold;">Memo / Reference:</td>
+                        <td style="padding: 5px;">{payment_ref}</td>
+                    </tr>
+                </table>
+            </div>
+        """
+        bill.message_post(
+            body=message_body,
+            subject=f"Payment Details - {self.name or 'Payment'}",
+            message_type='notification',
+        )
+
     def _log_payment_details_to_bills(self):
-        """Log payment details to the message history of related vendor bills"""
+        """Log payment details to all vendor bills currently reconciled with this payment.
+        Kept for backward compatibility; prefer _log_payment_details_to_bill(bill) called
+        from account.partial.reconcile so the log fires at reconciliation time.
+        """
         for payment in self:
-            # Only log for vendor payments (supplier bills)
             if payment.partner_type != 'supplier':
                 continue
-            
-            bills = payment._get_related_bills()
-            
-            if not bills:
-                continue
-            
-            # Prepare payment details
-            payment_date = format_date(self.env, payment.date) if payment.date else 'N/A'
-            payment_amount = formatLang(self.env, payment.amount, currency_obj=payment.currency_id) if payment.amount else 'N/A'
-            payment_ref = payment.memo or payment.payment_reference or 'N/A'
-            check_number = getattr(payment, 'check_number', False) or 'N/A'
-            
-            # Get the human-readable state label safely
-            try:
-                payment_state = dict(payment._fields['state']._description_selection(self.env)).get(payment.state, payment.state)
-            except (AttributeError, KeyError):
-                payment_state = payment.state.title() if payment.state else 'N/A'
-            
-            # Create HTML message
-            message_body = f"""
-                <div style="background-color: #D6EBF0; color: #000000; padding: 15px; margin: 10px; border-radius: 10px; border: 1px solid #AED9E1">
-                    <h3 style="margin-top: 0; color: #007bff;"><b>Payment Details</b></h3>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="padding: 5px; font-weight: bold; width: 40%;">Payment Date:</td>
-                            <td style="padding: 5px;">{payment_date}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 5px; font-weight: bold;">Amount:</td>
-                            <td style="padding: 5px;">{payment_amount}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 5px; font-weight: bold;">Memo/Reference:</td>
-                            <td style="padding: 5px;">{payment_ref}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 5px; font-weight: bold;">Check Number:</td>
-                            <td style="padding: 5px;">{check_number}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 5px; font-weight: bold;">Payment Status:</td>
-                            <td style="padding: 5px;">{payment_state}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 5px; font-weight: bold;">Payment Number:</td>
-                            <td style="padding: 5px;">{payment.name or 'N/A'}</td>
-                        </tr>
-                    </table>
-                </div>
-            """
-            
-            # Post message to each related bill
-            for bill in bills:
-                bill.message_post(
-                    body=message_body,
-                    subject=f"Payment Details - {payment.name or 'Payment'}",
-                    message_type='notification'
-                )
+            for bill in payment._get_related_bills():
+                payment._log_payment_details_to_bill(bill)
     
-    @api.model_create_multi
-    def create(self, vals_list):
-        """Override create to log payment details to related bills"""
-        payments = super(AccountPayment, self).create(vals_list)
-        
-        # Log payment details after creation if payment is posted
-        # Note: Bills might not be reconciled yet at creation time
-        for payment in payments:
-            if payment.state == 'posted':
-                payment._log_payment_details_to_bills()
-        
-        return payments
-    
-    def write(self, vals):
-        """Override write to log payment details when payment is modified"""
-        # Store old state to detect state changes
-        old_states = {payment.id: payment.state for payment in self}
-        
-        result = super(AccountPayment, self).write(vals)
-        
-        # Log payment details if:
-        # 1. State changed to 'posted'
-        # 2. Payment date, amount, ref, or check_number changed (and payment is posted)
-        # 3. After write, check if payment is posted and has related bills (for reconciliation cases)
-        
-        fields_to_track = ['date', 'amount', 'ref', 'payment_reference', 'check_number', 'state']
-        should_log = any(field in vals for field in fields_to_track)
-        
-        for payment in self:
-            # Log if state changed to posted
-            state_changed_to_posted = (
-                'state' in vals and 
-                old_states.get(payment.id) != 'posted' and 
-                payment.state == 'posted'
-            )
-            
-            # Log if payment details changed and payment is posted
-            details_changed = (
-                should_log and 
-                payment.state == 'posted' and
-                any(field in vals for field in ['date', 'amount', 'ref', 'payment_reference', 'check_number'])
-            )
-            
-            # Check if payment is posted and has bills (catches reconciliation after posting)
-            if state_changed_to_posted or details_changed:
-                bills = payment._get_related_bills()
-                if bills:
-                    payment._log_payment_details_to_bills()
-        
-        return result
 
     @api.constrains("ref", "payment_method_line_id")
     def _check_ref(self):
@@ -191,16 +135,6 @@ class AccountPayment(models.Model):
         res.append('new_ach_fast_payment')
         return res
 
-    def action_post(self):
-        """Override action_post to log payment details when payment is posted"""
-        result = super(AccountPayment, self).action_post()
-        
-        # Log payment details after posting
-        for payment in self:
-            if payment.partner_type == 'supplier':
-                payment._log_payment_details_to_bills()
-        
-        return result
     
     def action_open_reconcile(self):
         """Open the bank reconciliation widget for bank, cash, and credit card journal payments."""
@@ -262,6 +196,43 @@ class AccountPaymentRegister(models.TransientModel):
             payments |= vals['payment']
         payments.action_post()
 
+
+
+class AccountPartialReconcile(models.Model):
+    """Hook into reconciliation to log payment details to vendor bill chatter.
+
+    This fires at the exact moment a payment is matched to a bill line, which is
+    AFTER action_post() completes, making it the only reliable trigger point.
+    """
+    _inherit = 'account.partial.reconcile'
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        result = super().create(vals_list)
+        logged_pairs = set()
+        for rec in result:
+            debit_move = rec.debit_move_id.move_id
+            credit_move = rec.credit_move_id.move_id
+
+            # Determine which side is the payment and which is the vendor bill
+            if debit_move.payment_id and credit_move.move_type == 'in_invoice':
+                payment = debit_move.payment_id
+                bill = credit_move
+            elif credit_move.payment_id and debit_move.move_type == 'in_invoice':
+                payment = credit_move.payment_id
+                bill = debit_move
+            else:
+                continue
+
+            if payment.partner_type != 'supplier':
+                continue
+
+            pair = (payment.id, bill.id)
+            if pair not in logged_pairs:
+                logged_pairs.add(pair)
+                payment._log_payment_details_to_bill(bill)
+
+        return result
 
 
 class AccountPaymentTerm(models.Model):
