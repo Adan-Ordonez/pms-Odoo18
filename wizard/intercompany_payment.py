@@ -63,9 +63,12 @@ class IntercompanyWizardCC(models.TransientModel):
 
     company_to_pay = fields.Many2one('res.company', string='Company to Pay', required=True)
     card_journal = fields.Many2one('account.journal', string='Payment Journal', required=True, domain="[('company_id', '=', company_to_pay), ('type', 'in', ['cash', 'bank'])]")
+    payment_date = fields.Date(string='Payment Date', required=True, default=fields.Date.today)
     amount_total = fields.Float(string='Bill Total', readonly=True)
     amount_due = fields.Float(string='Amount Due', readonly=True)
-    amount = fields.Float(string='Amount to Pay', required=True)
+    amount = fields.Float(string='Amount to Pay', required=True,
+                          help="Enter a partial amount to register an installment payment. "
+                               "Cannot exceed the current Amount Due.")
 
     def _find_account(self, code, company_id):
         """Find an account by code using the target company context."""
@@ -156,7 +159,7 @@ class IntercompanyWizardCC(models.TransientModel):
             'partner_id': provider,
             'company_id': main_company,
             'ref': reference,
-            'date': fields.Date.today(),
+            'date': self.payment_date,
             'line_ids': main_journal_entry_lines,
         })
 
@@ -200,7 +203,7 @@ class IntercompanyWizardCC(models.TransientModel):
             'partner_id': provider,
             'ref': reference,
             'company_id': self.company_to_pay.id,
-            'date': fields.Date.today(),
+            'date': self.payment_date,
             'line_ids': other_journal_entry_lines,
         })
 

@@ -5,15 +5,20 @@
             <field name="model">intercompany.wizard</field>
             <field name="arch" type="xml">
                 <form string="Intercompany Payment Wizard">
-                        <group name="general details" class="o_group">
+                        <group string="Bill Summary" name="summary" class="o_group">
                             <field name="amount_total" widget="monetary"/>
                             <field name="amount_due" widget="monetary"/>
-                            <separator/>
+                        </group>
+                        <group string="Payment Details" name="payment_details" class="o_group">
+                            <field name="payment_date"/>
                             <field name="amount" widget="monetary"/>
-                            <separator/>
                             <field name="company_to_pay"/>
                             <field name="card_journal"/>
                         </group>
+                        <div class="alert alert-info" role="alert" style="margin: 8px 0;">
+                            <strong>Partial payments:</strong> Enter an amount less than "Amount Due" to register an installment.
+                            The bill will remain open for the outstanding balance.
+                        </div>
                     <footer>
                         <button name="make_intercompany_payment" string="Make Intercompany Payment" type="object" class="oe_highlight"/>
                         <button special="cancel" string="Discard" type="object" class="btn-danger"/>
