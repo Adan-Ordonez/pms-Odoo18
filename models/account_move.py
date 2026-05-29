@@ -342,6 +342,15 @@ class AccountMove(models.Model):
         """
         self.name = False
         
+    @api.model
+    def default_get(self, fields_list):
+        defaults = super().default_get(fields_list)
+        if (defaults.get('move_type') in ('in_invoice', 'in_refund')
+                and 'invoice_user_id' in fields_list
+                and not defaults.get('invoice_user_id')):
+            defaults['invoice_user_id'] = self.env.uid
+        return defaults
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
