@@ -275,7 +275,7 @@
                     type="object"
                     string="&#160;&#160;&#160;&#160;&#160;Notify Job&#160;&#160;&#160;&#160;&#160;"
                     class="btn-info"
-                    invisible="state in ('cancelled', 'created') or order_sent or &amp; and state == 'pending' and invoice_payment_state != 'Paid'"
+                    invisible="state in ('cancelled', 'created') or order_sent or state == 'pending'"
                 />
                 <button 
                     name="complete_job"
